@@ -12,10 +12,6 @@ def draw_circuit(qc: QuantumCircuit) -> None:
     print("generated circuit in", output_path)
 
 def find_optimal_n_iterations():
-    # nous avons un sudoku 2x2
-    nbre_grilles_possibles = 2**(2*2)
-
-    print(nbre_grilles_possibles)
     return 1
 
 def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
