@@ -8,15 +8,34 @@ IMAGES_FOLDER = "images"
 
 def draw_circuit(qc: QuantumCircuit) -> None:
     output_path = Path(IMAGES_FOLDER, "circuit_grover_sudoku2x2.jpg")
-    qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path, fold=-1)
-    print("generated circuit in", output_path)
+    # L'argument fold=-1 permet de générer l'image du circuit en une seule ligne
+    #qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path, fold=-1)
+    qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path)
+    print("Une image du circuit à été généré à ", output_path)
 
 def find_optimal_n_iterations():
     # nous avons un sudoku 2x2
-    nbre_grilles_possibles = 2**(2*2)
+    taille_sudoku = 2
+    print(f"Pour un sudoku n={taille_sudoku} ({taille_sudoku}x{taille_sudoku})")
+    
+    nbre_grilles_possibles = taille_sudoku**(taille_sudoku*taille_sudoku)
+    print(f"Il y a N={nbre_grilles_possibles} combinaisons possibles")
 
-    print(nbre_grilles_possibles)
-    return 1
+    theta = np.arcsin(1/np.sqrt(nbre_grilles_possibles))
+    print(f"Nous avons un theta = {theta} rad")
+
+    # On isole k dans la formule (2k+1)*theta = pi/2
+    k = (np.pi-2*theta)/(4*theta)
+    nbre_iterations = int(np.round(k))
+    print(f"Ce qui nous donne un k={k}")
+    print(f"On arrondi k pour donner le nombre d'itérations = {nbre_iterations}")
+
+    return (nbre_iterations, k, theta)
+
+def calculer_prob_succes(k, theta):
+    prob_succes = np.abs(np.sin((2*k+1)*theta))**2
+    print(f"la probabilité de succès est de {prob_succes*100}%")
+
 
 def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
     c_nots = [[0,4], [1,4], [0,5], [2,5], [1,6], [3,6], [2,7], [3,7]]
@@ -80,6 +99,7 @@ def grover(num_iterations) -> QuantumCircuit:
     qc.measure(v_qubits, measures)
     return qc
 
-num_iterations = find_optimal_n_iterations()
+num_iterations, k, theta = find_optimal_n_iterations()
+calculer_prob_succes(k, theta)
 qc : QuantumCircuit = grover(num_iterations)
 draw_circuit(qc)
