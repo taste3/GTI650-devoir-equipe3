@@ -1,5 +1,6 @@
 from pathlib import Path
 import pennylane as qml
+from qiskit import transpile
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.visualization import plot_histogram
@@ -30,10 +31,20 @@ def show_probabilities(qc: QuantumCircuit):
     print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
 
-def count_equivalent_cnot(qc):
+def compter_cnot(qc : QuantumCircuit):
+    # J'ai essayé d'utiliser les fonctions de pennylane, mais puisque mon circuit est en qiskit j'ai décidé d'explorer le SDK Qiskit
+    # Qiskit donne une fonction qui permet de décomposer le circuit en rotations (u3) et en portes CNOT (cx) 
+    # https://quantum.cloud.ibm.com/docs/en/api/qiskit/transpiler
+    qc_transpile = transpile(qc, basis_gates=["u3", "cx"], optimization_level=0)
+    
+    #Si on veut voir le circuit réel
+    #draw_circuit(qc_transpile)
 
-    no_cnots = 0
-    print("Ce circuit équivaut à {no_cnots} portes CNOT")
+    #count_ops permet de compter le nombre de chaque type de portes
+    # https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.QuantumCircuit
+    nbre_cnots = qc_transpile.count_ops().get("cx", 0)
+
+    print(f"Ce circuit équivaut à {nbre_cnots} portes CNOT")
 
 def find_optimal_n_iterations():
     # nous avons un sudoku 2x2
@@ -122,8 +133,8 @@ def grover(num_iterations) -> QuantumCircuit:
     return qc
 
 num_iterations, k, theta = find_optimal_n_iterations()
-calculer_prob_succes(k, theta)
 qc : QuantumCircuit = grover(num_iterations)
+calculer_prob_succes(k, theta)
+compter_cnot(qc)
 draw_circuit(qc)
 show_probabilities(qc)
-count_equivalent_cnot(qc)
