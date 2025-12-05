@@ -10,8 +10,8 @@ https://github.com/taste3/GTI650-devoir-equipe3
 
 ### Après avoir installé les requis, vous pouvez lancer le sudoku2x2 avec la commande:
 
-````python sudoku2x2.py```
+````python sudoku_2x2.py```
 
 ### Ou le sudoku3x3 avec la commande:
 
-````python sudoku3x3.py```
+````python sudoku_3x3.py```
