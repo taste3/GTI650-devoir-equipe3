@@ -18,40 +18,49 @@ def draw_histogram(qc: QuantumCircuit, file_name):
     # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
     probabilites = {format(i, "09b"): probabilites[i] for i in range(512)}
 
-    probabilites = dict(filter(lambda item: item[1] > 0.004, probabilites.items()))
+    # si on veut filtrer les probabilitées pour seulement afficher ceux en haut d'un certain seuil
+    probabilites = dict(filter(lambda item: item[1] > 0.002, probabilites.items()))
 
     plot_histogram(probabilites, figsize=(14,10), title="Probabilités de mesures", filename=output_path)
     print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
+# Contraintes sur les lignes et colonnes
+def valider_condition(qc, qubits, ancilla):
+    a, b, c = qubits
+
+    # avec les XOR (cnot), on vérifie qu'il y a un ou trois 1 sur la ligne/colonne
+    qc.cx(a, ancilla)
+    qc.cx(b, ancilla)
+    qc.cx(c, ancilla)
+
+    # avec un CCCNOT, on retire le fait que trois 1 est valide
+    qc.mcx([a, b, c], ancilla)
+
 def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
-    c_nots = []
 
-    # Contraintes sur les lignes
-    c_nots.extend([[0,9], [1,9], [2,9]])    # ligne#1 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([0,1,2], 9)                      # ligne#1 ne doit pas contenir trois 1
-    c_nots.extend([[3,10], [4,10], [5,10]]) # ligne#2 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([3,4,5], 10)                     # ligne#2 ne doit pas contenir trois 1
-    c_nots.extend([[6,11], [7,11], [8,11]]) # ligne#3 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([6,7,8], 11)                     # ligne#3 ne doit pas contenir trois 1
+    # valider les conditions sur les lignes
+    valider_condition(qc, [0,1,2], 9)
+    valider_condition(qc, [3,4,5], 10)
+    valider_condition(qc, [6,7,8], 11)
 
-    # Contraintes sur les colonnes
-    c_nots.extend([[0,12], [3,12], [6,12]]) # colonne#1 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([0,3,6], 12)                     # colonne#1 ne doit pas contenir trois 1
-    c_nots.extend([[1,13], [4,13], [7,13]]) # colonne#2 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([1,4,7], 13)                     # colonne#2 ne doit pas contenir trois 1
-    c_nots.extend([[2,14], [5,14], [8,14]]) # colonne#3 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
-    qc.mcx([2,5,8], 14)                     # colonne#3 ne doit pas contenir trois 1
+    # valider les conditions sur les colonnes
+    valider_condition(qc, [0,3,6], 12)
+    valider_condition(qc, [1,4,7], 13)
+    valider_condition(qc, [2,5,8], 14)
     
-    # On ajoute les c_nots au circuit
-    for c_not in c_nots:
-        qc.cx(c_not[0], c_not[1])
 
     # On ajoute le CCCCNOT qui vérifie toutes les conditions
     qc.mcx([9,10,11,12,13,14], 15)
 
-    # On ajoute les c_nots
-    for c_not in c_nots:
-        qc.cx(c_not[0], c_not[1])
+    # on défait les conditions sur les lignes
+    valider_condition(qc, [0,1,2], 9)
+    valider_condition(qc, [3,4,5], 10)
+    valider_condition(qc, [6,7,8], 11)
+
+    # on défait les conditions sur les colonnes
+    valider_condition(qc, [0,3,6], 12)
+    valider_condition(qc, [1,4,7], 13)
+    valider_condition(qc, [2,5,8], 14)
 
     return qc
 
