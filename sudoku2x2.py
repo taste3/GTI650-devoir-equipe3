@@ -2,16 +2,38 @@ from pathlib import Path
 import pennylane as qml
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.visualization import plot_histogram
+from qiskit.quantum_info import Statevector, partial_trace
 
-IMAGE_OUTPUT_FORMAT = "mpl"
 IMAGES_FOLDER = "images"
 
 def draw_circuit(qc: QuantumCircuit) -> None:
     output_path = Path(IMAGES_FOLDER, "circuit_grover_sudoku2x2.jpg")
     # L'argument fold=-1 permet de générer l'image du circuit en une seule ligne
     #qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path, fold=-1)
-    qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path)
+    qc.draw(output="mpl", filename=output_path)
     print("Une image du circuit à été généré à ", output_path)
+
+def show_probabilities(qc: QuantumCircuit):
+    output_path = Path(IMAGES_FOLDER, "probabilites_sudoku2x2.jpg")
+    # on doit retirer les mesures pour éviter une erreur 'Cannot apply instruction with classical bits: measure'
+    qc_sans_mesures = qc.remove_final_measurements(inplace=False)
+    matrice_densite = Statevector.from_instruction(qc_sans_mesures)
+
+    reduced = partial_trace(matrice_densite, [4, 5, 6, 7, 8])
+    probabilites = np.real(np.diag(reduced.data))
+
+    # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
+    probabilites = {format(i, "04b"): probabilites[i] for i in range(16)}
+
+    plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
+    print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
+
+
+def count_equivalent_cnot(qc):
+
+    no_cnots = 0
+    print("Ce circuit équivaut à {no_cnots} portes CNOT")
 
 def find_optimal_n_iterations():
     # nous avons un sudoku 2x2
@@ -103,3 +125,5 @@ num_iterations, k, theta = find_optimal_n_iterations()
 calculer_prob_succes(k, theta)
 qc : QuantumCircuit = grover(num_iterations)
 draw_circuit(qc)
+show_probabilities(qc)
+count_equivalent_cnot(qc)
