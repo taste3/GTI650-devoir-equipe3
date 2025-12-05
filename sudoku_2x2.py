@@ -66,7 +66,7 @@ def grover(num_iterations) -> QuantumCircuit:
     qc.measure(v_qubits, measures)
     return qc
 
-num_iterations, k, theta = find_optimal_n_iterations(taille_sudoku=2)
+num_iterations, k, theta = find_optimal_n_iterations(n=2)
 qc : QuantumCircuit = grover(num_iterations)
 calculer_prob_succes(k, theta)
 compter_cnot(qc)

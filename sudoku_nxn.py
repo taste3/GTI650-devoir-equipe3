@@ -32,13 +32,13 @@ def draw_histogram(qc: QuantumCircuit, file_name):
 
 def calculer_prob_succes(k, theta):
     prob_succes = np.abs(np.sin((2*k+1)*theta))**2
-    print(f"la probabilité de succès est de {prob_succes*100}%")
+    print(f"La probabilité de succès est de {prob_succes*100}%")
 
-def find_optimal_n_iterations(taille_sudoku):
-    # nous avons un sudoku 2x2
-    print(f"Pour un sudoku n={taille_sudoku} ({taille_sudoku}x{taille_sudoku})")
+def find_optimal_n_iterations(n):
+    # nous avons un sudoku nxn
+    print(f"Pour un sudoku n={n} ({n}x{n})")
     
-    nbre_grilles_possibles = taille_sudoku**(taille_sudoku*taille_sudoku)
+    nbre_grilles_possibles = n**(n*n)
     print(f"Il y a N={nbre_grilles_possibles} combinaisons possibles")
 
     theta = np.arcsin(1/np.sqrt(nbre_grilles_possibles))
