@@ -30,27 +30,29 @@ def draw_histogram(qc: QuantumCircuit, file_name):
     plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
     print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
-def calculer_prob_succes(k, theta):
-    prob_succes = np.abs(np.sin((2*k+1)*theta))**2
-    print(f"La probabilité de succès est de {prob_succes*100}%")
+def calculer_prob_succes(m, theta):
+    prob_succes = np.abs(np.sin((2*m+1)*theta))**2
+    print(f"La probabilité de succès est de {prob_succes:.4%}")
 
-def find_optimal_n_iterations(n):
+def find_optimal_n_iterations(n, m):
     # nous avons un sudoku nxn
     print(f"Pour un sudoku n={n} ({n}x{n})")
     
-    nbre_grilles_possibles = n**(n*n)
-    print(f"Il y a N={nbre_grilles_possibles} combinaisons possibles")
+    N = 2**(n*n)
+    print(f"Le nombre de combinaisons possibles est N={N}")
 
-    theta = np.arcsin(1/np.sqrt(nbre_grilles_possibles))
-    print(f"Nous avons un theta = {theta} rad")
+    print(f"Le nombre de solutions possibles est m={m}")
 
-    # On isole k dans la formule (2k+1)*theta = pi/2
-    k = (np.pi-2*theta)/(4*theta)
-    nbre_iterations = int(np.round(k))
+    theta = np.arcsin(np.sqrt(m/N))
+    print(f"Nous avons un theta={theta:.4}rad")
+
+    # pour trouver le nombre d'itérations k, on isole k dans (2k+1)*theta=pi/2
+    k = ((np.pi/2)-theta)/(2*theta)
     print(f"Ce qui nous donne un k={k}")
-    print(f"On arrondi k pour donner le nombre d'itérations = {nbre_iterations}")
+    k = int(np.round(k))
+    print(f"On arrondi k pour donner le nombre d'itérations k={k}")
 
-    return (nbre_iterations, k, theta)
+    return (k, theta)
 
 
 def compter_cnot(qc : QuantumCircuit):

@@ -62,8 +62,8 @@ def grover(num_iterations) -> QuantumCircuit:
     qc.measure(v_qubits, measures)
     return qc
 
-num_iterations, k, theta = find_optimal_n_iterations(n=3)
-qc : QuantumCircuit = grover(num_iterations)
+k, theta = find_optimal_n_iterations(n=3, m=6)
+qc : QuantumCircuit = grover(k)
 calculer_prob_succes(k, theta)
 compter_cnot(qc)
 draw_circuit(qc, "circuit_grover_sudoku3x3.jpg")
