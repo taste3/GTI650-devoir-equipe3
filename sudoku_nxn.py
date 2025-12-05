@@ -8,11 +8,11 @@ from qiskit.quantum_info import Statevector, partial_trace
 
 IMAGES_FOLDER = "images"
 
-def draw_circuit(qc: QuantumCircuit, file_name) -> None:
+def draw_circuit(qc: QuantumCircuit, file_name, fold=25) -> None:
     output_path = Path(IMAGES_FOLDER, file_name)
     # L'argument fold=-1 permet de générer l'image du circuit en une seule ligne
     #qc.draw(output=IMAGE_OUTPUT_FORMAT, filename=output_path, fold=-1)
-    qc.draw(output="mpl", filename=output_path)
+    qc.draw(output="mpl", fold=fold, filename=output_path)
     print("Une image du circuit à été généré à ", output_path)
 
 

@@ -6,17 +6,18 @@ from qiskit.quantum_info import Statevector, partial_trace
 
 from sudoku_nxn import calculer_prob_succes, find_optimal_n_iterations, draw_circuit, IMAGES_FOLDER, compter_cnot
 
+# L'histogramme du 3x3 était pas demandé, mais ça m'aide a valider mon circuit
 def draw_histogram(qc: QuantumCircuit, file_name):
     output_path = Path(IMAGES_FOLDER, file_name)
     # on doit retirer les mesures pour éviter une erreur 'Cannot apply instruction with classical bits: measure'
     qc_sans_mesures = qc.remove_final_measurements(inplace=False)
     matrice_densite = Statevector.from_instruction(qc_sans_mesures)
 
-    reduced = partial_trace(matrice_densite, [4, 5, 6, 7, 8])
+    reduced = partial_trace(matrice_densite, [9,10,11,12,13,14,15])
     probabilites = np.real(np.diag(reduced.data))
 
     # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
-    probabilites = {format(i, "04b"): probabilites[i] for i in range(16)}
+    probabilites = {format(i, "04b"): probabilites[i] for i in range(512)}
 
     plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
     print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
@@ -59,9 +60,9 @@ def inversion_moyenne(qc: QuantumCircuit):
     qc.h(qubits)
     qc.x(qubits)
 
-    #qc.h(qubits[])
-    #qc.mcx(qubits[], qubits[])
-    #qc.h(qubits[])
+    qc.h(8)
+    qc.mcx([0,1,2,3,4,5,6,7], 8)
+    qc.h(8)
 
     qc.x(qubits)
     qc.h(qubits)
@@ -100,5 +101,5 @@ k, theta = find_optimal_n_iterations(n=3, m=6)
 qc : QuantumCircuit = grover(k)
 calculer_prob_succes(k, theta)
 compter_cnot(qc)
-draw_circuit(qc, "circuit_grover_sudoku3x3.jpg")
+draw_circuit(qc, "circuit_grover_sudoku3x3.jpg", fold=76)
 draw_histogram(qc, "probabilites_sudoku3x3.jpg")
