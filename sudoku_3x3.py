@@ -15,16 +15,17 @@ def draw_histogram(qc: QuantumCircuit, file_name):
 
     reduced = partial_trace(matrice_densite, [9,10,11,12,13,14,15])
     probabilites = np.real(np.diag(reduced.data))
-
     # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
-    probabilites = {format(i, "04b"): probabilites[i] for i in range(512)}
+    probabilites = {format(i, "09b"): probabilites[i] for i in range(512)}
 
-    plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
+    probabilites = dict(filter(lambda item: item[1] > 0.004, probabilites.items()))
+
+    plot_histogram(probabilites, figsize=(14,10), title="Probabilités de mesures", filename=output_path)
     print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
 def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
     c_nots = []
-    mc_nots = []
+
     # Contraintes sur les lignes
     c_nots.extend([[0,9], [1,9], [2,9]])    # ligne#1 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
     qc.mcx([0,1,2], 9)                      # ligne#1 ne doit pas contenir trois 1
@@ -46,7 +47,7 @@ def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
         qc.cx(c_not[0], c_not[1])
 
     # On ajoute le CCCCNOT qui vérifie toutes les conditions
-    qc.mcx([9,10,11,12,13, 14], 15)
+    qc.mcx([9,10,11,12,13,14], 15)
 
     # On ajoute les c_nots
     for c_not in c_nots:
