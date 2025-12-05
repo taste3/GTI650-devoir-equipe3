@@ -1,16 +1,51 @@
+from pathlib import Path
 import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.visualization import plot_histogram
+from qiskit.quantum_info import Statevector, partial_trace
 
-from sudoku_nxn import calculer_prob_succes, find_optimal_n_iterations, draw_circuit, draw_histogram, compter_cnot
+from sudoku_nxn import calculer_prob_succes, find_optimal_n_iterations, draw_circuit, IMAGES_FOLDER, compter_cnot
+
+def draw_histogram(qc: QuantumCircuit, file_name):
+    output_path = Path(IMAGES_FOLDER, file_name)
+    # on doit retirer les mesures pour éviter une erreur 'Cannot apply instruction with classical bits: measure'
+    qc_sans_mesures = qc.remove_final_measurements(inplace=False)
+    matrice_densite = Statevector.from_instruction(qc_sans_mesures)
+
+    reduced = partial_trace(matrice_densite, [4, 5, 6, 7, 8])
+    probabilites = np.real(np.diag(reduced.data))
+
+    # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
+    probabilites = {format(i, "04b"): probabilites[i] for i in range(16)}
+
+    plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
+    print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
 def oracle_sudoku(qc: QuantumCircuit) -> QuantumCircuit:
-    c_nots = [[0,9]]
-    # On ajoute les c_nots
+    c_nots = []
+    mc_nots = []
+    # Contraintes sur les lignes
+    c_nots.extend([[0,9], [1,9], [2,9]])    # ligne#1 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([0,1,2], 9)                      # ligne#1 ne doit pas contenir trois 1
+    c_nots.extend([[3,10], [4,10], [5,10]]) # ligne#2 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([3,4,5], 10)                     # ligne#2 ne doit pas contenir trois 1
+    c_nots.extend([[6,11], [7,11], [8,11]]) # ligne#3 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([6,7,8], 11)                     # ligne#3 ne doit pas contenir trois 1
+
+    # Contraintes sur les colonnes
+    c_nots.extend([[0,12], [3,12], [6,12]]) # colonne#1 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([0,3,6], 12)                     # colonne#1 ne doit pas contenir trois 1
+    c_nots.extend([[1,13], [4,13], [7,13]]) # colonne#2 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([1,4,7], 13)                     # colonne#2 ne doit pas contenir trois 1
+    c_nots.extend([[2,14], [5,14], [8,14]]) # colonne#3 ne doit pas avoir tout des 0 et ne doit pas avoir deux 1
+    qc.mcx([2,5,8], 14)                     # colonne#3 ne doit pas contenir trois 1
+    
+    # On ajoute les c_nots au circuit
     for c_not in c_nots:
         qc.cx(c_not[0], c_not[1])
 
     # On ajoute le CCCCNOT qui vérifie toutes les conditions
-    qc.mcx([9,10,11,12,13], 14)
+    qc.mcx([9,10,11,12,13, 14], 15)
 
     # On ajoute les c_nots
     for c_not in c_nots:
@@ -52,8 +87,7 @@ def grover(num_iterations) -> QuantumCircuit:
     qc.barrier()
 
     # On applique l'oracle n fois
-    # On applique l'oracle 1 fois pour tester
-    for iteration in range(1):
+    for iteration in range(num_iterations):
         qc = oracle_sudoku(qc)
         qc.barrier()
         qc = inversion_moyenne(qc)

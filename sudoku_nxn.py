@@ -15,20 +15,6 @@ def draw_circuit(qc: QuantumCircuit, file_name) -> None:
     qc.draw(output="mpl", filename=output_path)
     print("Une image du circuit à été généré à ", output_path)
 
-def draw_histogram(qc: QuantumCircuit, file_name):
-    output_path = Path(IMAGES_FOLDER, file_name)
-    # on doit retirer les mesures pour éviter une erreur 'Cannot apply instruction with classical bits: measure'
-    qc_sans_mesures = qc.remove_final_measurements(inplace=False)
-    matrice_densite = Statevector.from_instruction(qc_sans_mesures)
-
-    reduced = partial_trace(matrice_densite, [4, 5, 6, 7, 8])
-    probabilites = np.real(np.diag(reduced.data))
-
-    # On formate attribues les probabilités à leurs vecteur d'états associé (ex: 7 = 0111)
-    probabilites = {format(i, "04b"): probabilites[i] for i in range(16)}
-
-    plot_histogram(probabilites, figsize=(10,7), title="Probabilités de mesures", filename=output_path)
-    print("Un histogramme illustrant les probabilités de résultat à été généré à ", output_path)
 
 def calculer_prob_succes(m, theta):
     prob_succes = np.abs(np.sin((2*m+1)*theta))**2
